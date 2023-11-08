@@ -21,7 +21,7 @@ namespace FFmpegView
         /// </summary>
         /// <param name="libffmpegDirectoryPath">ffmpeg libs folder path</param>
         /// <param name="logLevel">value from ffmpeg.AV_LOG_***</param>
-        public static unsafe void Initialize(string libffmpegDirectoryPath = null, int logLevel = ffmpeg.AV_LOG_VERBOSE)
+        public static unsafe void Initialize(string? libffmpegDirectoryPath = null, int logLevel = ffmpeg.AV_LOG_VERBOSE)
         {
             if (IsInitialize) return;
             try
@@ -38,10 +38,12 @@ namespace FFmpegView
                             platform = $"osx-{PlantformUntils.ArchitectureString}";
                             break;
                         case Platforms.Windows:
-                            platform = PlantformUntils.IsArmArchitecture ? "win-arm64" : "win-x86";
+                            platform = PlantformUntils.IsArmArchitecture ? "win-arm64" : (Environment.Is64BitOperatingSystem ? "win-x64" : "win-x86");
                             break;
                     }
                     libffmpegDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libffmpeg", platform);
+                    Debug.WriteLine($">>> {libffmpegDirectoryPath} exists? {Directory.Exists(libffmpegDirectoryPath)}");
+
                 }
                 if (Directory.Exists(libffmpegDirectoryPath))
                 {

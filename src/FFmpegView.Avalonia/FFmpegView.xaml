@@ -1,12 +1,24 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<Style Selector="FFmpegView">
-		<Setter Property="Template">
-			<ControlTemplate>
-				<Border Background="{TemplateBinding Background}">
-					<Image x:Name="PART_ImageView" Stretch="{TemplateBinding Stretch}" />
-				</Border>
-			</ControlTemplate>
-		</Setter>
-	</Style>
+    <Style Selector="FFmpegView">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}">
+                    <ContentControl x:Name="PART_ContentControlView" >
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Padding="{TemplateBinding Padding}"
+                                          RecognizesAccessKey="True"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </ContentControl>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 </Styles>

@@ -1,15 +1,27 @@
 ﻿using FFmpeg.AutoGen;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static FFmpegView.IMedia;
 
 namespace FFmpegView
 {
-    public sealed unsafe class VideoStreamDecoder : IMedia
+    public sealed unsafe class VideoStreamDecoder : IMedia, INotifyPropertyChanged
     {
         int error;
+        private long _curTimeStamp;
+        private long _curTimeStampOld = -1;
+
+        public TimeSpan Test = TimeSpan.Zero;
+        
+        public TimeSpan CurTimeStamp => TimeSpan.FromSeconds(_curTimeStamp);
+
+        private long StartTime;
+        private long StartRealTime;
+        double timeBase;
         AVFormatContext* format;
         AVCodecContext* codecContext;
         AVPacket* packet;
@@ -21,8 +33,8 @@ namespace FFmpegView
         IntPtr FrameBufferPtr;
         byte_ptrArray4 TargetData;
         int_array4 TargetLinesize;
-        readonly Stopwatch clock = new Stopwatch();
-        readonly object SyncLock = new object();
+        public readonly Stopwatch clock = new();
+        readonly object SyncLock = new();
         TimeSpan lastTime;
         bool isNextFrame = true;
         public event MediaHandler MediaPlay;
@@ -41,6 +53,7 @@ namespace FFmpegView
         public bool IsPlaying { get; private set; }
         public MediaState State { get; private set; }
         public TimeSpan Position => clock.Elapsed + OffsetClock;
+        
         public TimeSpan frameDuration { get; private set; }
         #endregion
         public VideoStreamDecoder()
@@ -74,6 +87,10 @@ namespace FFmpegView
                     return;
                 }
                 videoStream = format->streams[videoStreamIndex];
+                StartTime       = format->start_time != ffmpeg.AV_NOPTS_VALUE ? format->start_time * 10 : 0;
+                StartRealTime   = format->start_time_realtime != ffmpeg.AV_NOPTS_VALUE ? format->start_time_realtime * 10 : 0;
+                
+                timeBase = ffmpeg.av_q2d(videoStream->time_base);
                 codecContext = ffmpeg.avcodec_alloc_context3(codec);
                 error = ffmpeg.avcodec_parameters_to_context(codecContext, videoStream->codecpar);
                 if (error < 0)
@@ -172,7 +189,7 @@ namespace FFmpegView
                 {
                     lock (SyncLock)
                     {
-                        int result = -1;
+                        var result = -1;
                         ffmpeg.av_frame_unref(frame);
                         while (true)
                         {
@@ -190,6 +207,13 @@ namespace FFmpegView
                             result = ffmpeg.avcodec_receive_frame(codecContext, frame);
                             if (result < 0) continue;
                             outFrame = *frame;
+                            
+                            // calculating the current timestamp
+                            var timestamp = (long)(packet->pts * timeBase);
+                            _curTimeStamp = timestamp - StartTime;
+
+                            UpdateCurTimeStamp();
+                            
                             return true;
                         }
                     }
@@ -217,7 +241,6 @@ namespace FFmpegView
                     IsPlaying = false;
                     OffsetClock = TimeSpan.FromSeconds(0);
                     clock.Reset();
-                    clock.Stop();
                     var tempFormat = format;
                     ffmpeg.avformat_free_context(tempFormat);
                     format = null;
@@ -250,7 +273,7 @@ namespace FFmpegView
                 SendMsg(MsgType.Information, $"FFmpeg : Failed to stop ({ex.Message})");
             }
         }
-        public bool SeekProgress(int seekTime)
+        public bool SeekProgress(double seekTime)
         {
             try
             {
@@ -260,11 +283,13 @@ namespace FFmpegView
                 {
                     IsPlaying = false;
                     clock.Stop();
-                    var timestamp = seekTime / ffmpeg.av_q2d(videoStream->time_base);
-                    ffmpeg.av_seek_frame(format, videoStreamIndex, (long)timestamp, ffmpeg.AVSEEK_FLAG_BACKWARD | ffmpeg.AVSEEK_FLAG_FRAME);
+
+                    var timestamp = ffmpeg.av_rescale_q((long)(seekTime * ffmpeg.AV_TIME_BASE), ffmpeg.av_get_time_base_q(), videoStream->time_base);
+
+                    ffmpeg.av_seek_frame(format, videoStreamIndex, timestamp, ffmpeg.AVSEEK_FLAG_BACKWARD | ffmpeg.AVSEEK_FLAG_FRAME);
                     ffmpeg.av_frame_unref(frame);
                     ffmpeg.av_packet_unref(packet);
-                    int error = 0;
+                    int error;
                     receiveFrame();
                     void receiveFrame()
                     {
@@ -288,6 +313,12 @@ namespace FFmpegView
                     clock.Restart();
                     IsPlaying = true;
                     lastTime = TimeSpan.Zero;
+                    
+                    // calculating the current timestamp
+                    var new_timestamp = (long)(packet->pts * timeBase);
+                    _curTimeStamp = new_timestamp - StartTime;
+                    
+                    UpdateCurTimeStamp();
                 }
                 return true;
             }
@@ -329,7 +360,6 @@ namespace FFmpegView
                 {
                     IsPlaying = false;
                     OffsetClock = clock.Elapsed;
-                    clock.Stop();
                     clock.Reset();
                     State = MediaState.Pause;
                     MediaPause?.Invoke(Duration);
@@ -347,6 +377,25 @@ namespace FFmpegView
             if (State == MediaState.None)
                 return;
             StopPlay();
+        }
+
+        private void UpdateCurTimeStamp()
+        {
+            if (_curTimeStamp < 0)
+                _curTimeStamp = 0;
+            
+            if (_curTimeStampOld == _curTimeStamp) 
+                return;
+            
+            _curTimeStampOld = _curTimeStamp;
+            OnPropertyChanged(nameof(CurTimeStamp));
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

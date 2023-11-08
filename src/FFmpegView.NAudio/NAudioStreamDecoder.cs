@@ -14,6 +14,11 @@ namespace FFmpegView.NAudio
             waveOut.Play();
         }
         public override void Prepare() { }
+        public override double GetVolumeCore()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override void PlayNextFrame(byte[] bytes)
         {
             if (bufferedWaveProvider.BufferLength <= bufferedWaveProvider.BufferedBytes + bytes.Length)
@@ -22,5 +27,11 @@ namespace FFmpegView.NAudio
         }
         public override void StopCore() { }
         public override void PauseCore() { }
+        public override void UnPauseCore() { }
+
+        public override void MuteCore() { }
+
+        public override void UnMuteCore() { }
+        public override void SetVolumeCore(double volume) { }
     }
 }

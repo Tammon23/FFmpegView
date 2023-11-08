@@ -4,6 +4,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         x:Class="FFmpegView.AvaloniaDemo.MainWindow"
-        Title="FFmpegView.AvaloniaDemo">
-	<FFmpegView x:Name="playerView" />
+        Title="FFmpegView.AvaloniaDemo"
+        Background="Black">
+	<FFmpegView x:Name="playerView">
+                <Grid RowDefinitions="* Auto" ColumnDefinitions="*">
+                        <Button Grid.Row="0" HorizontalAlignment="Stretch" Background="Transparent" VerticalAlignment="Stretch"/>
+                        <Border Grid.Row="1"
+                                Padding="4 2"
+                                BorderThickness="0">
+                                <Border.Background>
+                                        <SolidColorBrush Color="#b6b6b6" Opacity="0.5" />
+                                </Border.Background>
+                                <StackPanel Orientation="Vertical">
+                                        <Slider x:Name="SliderVideoProgression"/>
+                                        <DockPanel LastChildFill="False">
+                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Spacing="5">
+                                                        <Button x:Name="BtnStop" Content="⏹" Opacity="1"/>
+                                                        <Button x:Name="BtnPlayPause" Content="▶"/>
+                                                        <Button x:Name="BtnMuteUnMute" Content="🔊"/>
+                                                        <Slider x:Name="SliderVolume" TickFrequency="0.01" Minimum="0" Maximum="1" Width="100">
+                                                                <Slider.Styles>
+                                                                        <Style Selector="Slider:disabled">
+                                                                                <Setter Property="Opacity" Value="0.5" />
+                                                                        </Style>
+                                                                </Slider.Styles>
+                                                        </Slider>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="5" DockPanel.Dock="Right">
+                                                        <TextBlock x:Name="TextBlockCurrentTimeStamp" VerticalAlignment="Center"/>
+                                                        <TextBlock Text=" / " VerticalAlignment="Center"/>
+                                                        <TextBlock x:Name="TextBlockDuration" VerticalAlignment="Center" Text="00:00:00" />
+                                                        <Button x:Name="BtnFullScreen" Content="F"/>
+                                                </StackPanel>
+                                        </DockPanel>         
+                                </StackPanel>
+                        </Border>
+                </Grid>
+        </FFmpegView>
 </Window>

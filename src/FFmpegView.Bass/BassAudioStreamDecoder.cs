@@ -2,15 +2,43 @@
 
 namespace FFmpegView.Bass
 {
-    public unsafe class BassAudioStreamDecoder : AudioStreamDecoder
+    public class BassAudioStreamDecoder : AudioStreamDecoder
     {
         private Errors error;
         private int decodeStream;
         public Errors LastError => error;
+        private double _oldVolume = 0.5;
         public override void PauseCore()
         {
             ManagedBass.Bass.ChannelPause(decodeStream);
         }
+
+        public override void UnPauseCore()
+        {
+            ManagedBass.Bass.ChannelPlay(decodeStream);
+        }
+
+        public override void MuteCore()
+        {
+            _oldVolume = ManagedBass.Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Volume);
+            ManagedBass.Bass.ChannelSetAttribute(decodeStream, ChannelAttribute.Volume, 0);
+        }
+
+        public override void UnMuteCore()
+        {
+            ManagedBass.Bass.ChannelSetAttribute(decodeStream, ChannelAttribute.Volume, _oldVolume);
+        }
+
+        public override void SetVolumeCore(double volume)
+        {
+            ManagedBass.Bass.ChannelSetAttribute(decodeStream, ChannelAttribute.Volume, volume);
+        }
+        
+        public override double GetVolumeCore()
+        {
+            return ManagedBass.Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Volume);
+        }
+
         public override void StopCore()
         {
             ManagedBass.Bass.ChannelStop(decodeStream);

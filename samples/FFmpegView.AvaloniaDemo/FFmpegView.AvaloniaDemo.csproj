@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
 	<PackageReference Include="Avalonia.Desktop" Version="11.0.2" />
+	<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.3" />
 	<PackageReference Include="Dove.Bass.Windows" Version="1.0.0" />
 	<PackageReference Include="Dove.FFmpeg.Windows" Version="1.1.0" />
 	<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.2" />

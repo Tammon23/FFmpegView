@@ -1,3 +1,9 @@
+
+This is a fork of the FFmpegView library that can be found [here](https://github.com/Tammon23/FFmpegView). 
+The goal of this fork is to fix Avalonia specific issues and make the library easier to use. Additonally, 
+if you are a windows x64 user, it is important that the folder libffmpeg\win-x64 exists in your bin, with the correct 
+version of ffmpeg, ffplay, and ffprobe. The versions packaged in the original lib is incorrect.
+---
 This is a ffmpeg.autogen binding library, for wpf and avalonia.
 
 > # Avalonia

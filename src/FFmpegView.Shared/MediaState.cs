@@ -5,6 +5,12 @@
         None,
         Read,
         Play,
-        Pause,
+        Pause
+    }
+
+    public enum MediaVolumeState
+    {
+        Muted,
+        NotMuted
     }
 }
