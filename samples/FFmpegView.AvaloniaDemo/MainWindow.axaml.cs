@@ -11,13 +11,13 @@ namespace FFmpegView.AvaloniaDemo
 {
     public partial class MainWindow : Window
 {
-    public Player MediaPlayer { get; } = new Player();
+    private Player MediaPlayer { get; } = new Player();
 
     public MainWindow()
     {
         InitializeComponent();
         InitPlayer();
-        playerView.MediaPlayer = MediaPlayer;
+        PlayerView.MediaPlayer = MediaPlayer;
 
         BtnStop.Command = ReactiveCommand.Create(() =>
         {
@@ -26,22 +26,18 @@ namespace FFmpegView.AvaloniaDemo
 
         });
         
-        // if is play
-        BtnPlayPause.Command = ReactiveCommand.Create(() =>
+        BtnPlayPauseWindow.Command = ReactiveCommand.Create(() =>
         {
             if (MediaPlayer.IsPlaying())
             {
                 MediaPlayer.Pause();
-                BtnPlayPause.Content = "▶";
             }
             else
             {
-                BtnPlayPause.Content = "⏸";
                 if (MediaPlayer.HasMedia())
                 {
                     // unpause instead of start a new
                     MediaPlayer.Play();
-                    
                 }
                 else
                 {
@@ -52,18 +48,18 @@ namespace FFmpegView.AvaloniaDemo
             }
  
         });
+
+        BtnPlayPause.Command = BtnPlayPauseWindow.Command;
         
         BtnMuteUnMute.Command = ReactiveCommand.Create(() =>
         {
             if (MediaPlayer.IsMuted())
             {
                 MediaPlayer.UnMute();
-                BtnMuteUnMute.Content = "🔊";
             }
             else
             {
                 MediaPlayer.Mute();
-                BtnMuteUnMute.Content = "🔇";
             }
         });
 
@@ -96,8 +92,10 @@ namespace FFmpegView.AvaloniaDemo
 
     private void InitPlayer()
     {
-        var audioStreamDecoder = new BassAudioStreamDecoder();
-        audioStreamDecoder.Headers = new Dictionary<string, string> { { "User-Agent", "ffmpeg_demo" } };
+        var audioStreamDecoder = new BassAudioStreamDecoder
+        {
+            Headers = new Dictionary<string, string> { { "User-Agent", "ffmpeg_demo" } }
+        };
         MediaPlayer.SetAudioHandler(audioStreamDecoder);
     }
 }
